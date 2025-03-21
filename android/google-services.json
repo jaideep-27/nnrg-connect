@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "343239136814",
+    "project_id": "nnrg-connect",
+    "storage_bucket": "nnrg-connect.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:343239136814:android:abc123def456",
+        "android_client_info": {
+          "package_name": "com.nnrg.connect"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "343239136814-xyz789.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnVqHy4vXBXNwQxl0VRhS-8QkCgLC2v5A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "343239136814-2d9c9v6n8qj6vf4q9q8q9q8q9q8q.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "343239136814-abc123def456.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.nnrg.connect"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "343239136814",
+    "firebase_url": "https://nnrg-connect-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "nnrg-connect",
+    "storage_bucket": "nnrg-connect.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:343239136814:android:d21f72dea9d734a51a31bf",
+        "android_client_info": {
+          "package_name": "com.nnrgconnect.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "343239136814-5ktge9v65r2av4eju51bb8c8dudg6l59.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0gHWHNgL0Z8TPxrMu2zZeMIOC2o77YHE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "343239136814-5ktge9v65r2av4eju51bb8c8dudg6l59.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
