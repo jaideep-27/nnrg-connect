@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import { COLORS, FONT, SIZES } from '../constants/theme';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
-import authService from '../services/auth';
+import mongoAuthService from '../services/mongoAuth';
 
 const Login = () => {
   const router = useRouter();
@@ -40,14 +40,30 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      await authService.signInWithEmail(email, password);
+      const user = await mongoAuthService.loginUser(email, password);
       router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to login');
+      Alert.alert('Login Failed', error.message || 'Failed to login');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const isAuthenticated = await mongoAuthService.isAuthenticated();
+        if (isAuthenticated) {
+          router.replace('/(tabs)');
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      }
+    };
+    
+    checkAuth();
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -89,6 +105,13 @@ const Login = () => {
               style={styles.button}
             />
           </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don't have an account?</Text>
+            <TouchableOpacity onPress={() => router.push('/signup')}>
+              <Text style={styles.signupText}>Sign Up</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -128,5 +151,22 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: SIZES.large,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: SIZES.xxLarge,
+  },
+  footerText: {
+    fontFamily: FONT.regular,
+    fontSize: SIZES.medium,
+    color: COLORS.darkGray,
+    marginRight: SIZES.small,
+  },
+  signupText: {
+    fontFamily: FONT.semiBold,
+    fontSize: SIZES.medium,
+    color: COLORS.primary,
   }
 });

@@ -243,7 +243,8 @@ const styles = StyleSheet.create({
   header: {
     padding: SIZES.medium,
     backgroundColor: COLORS.white,
-    ...SHADOWS.small,
+    position: 'relative',
+    zIndex: 1,
   },
   headerTop: {
     flexDirection: 'row',

@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 
 import { COLORS, FONT, SIZES, SHADOWS } from '../constants/theme';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
+import mongoAuthService from '../services/mongoAuth';
+import imageUploadService from '../services/imageUpload';
 
 const Signup = () => {
   const router = useRouter();
@@ -16,12 +19,15 @@ const Signup = () => {
   const [rollNumber, setRollNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [idCardImage, setIdCardImage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{
     name?: string;
     email?: string;
     rollNumber?: string;
     password?: string;
     confirmPassword?: string;
+    idCardImage?: string;
   }>({});
 
   const validateForm = () => {
@@ -31,6 +37,7 @@ const Signup = () => {
       rollNumber?: string;
       password?: string;
       confirmPassword?: string;
+      idCardImage?: string;
     } = {};
     
     if (!name) {
@@ -59,20 +66,67 @@ const Signup = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
     
+    if (!idCardImage) {
+      newErrors.idCardImage = 'ID Card image is required';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-  const handleSignup = () => {
-    if (validateForm()) {
-      // In a real app, you would handle user registration here
-      router.replace('/(tabs)');
+  
+  const pickImage = async () => {
+    try {
+      // Request permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Please grant camera roll permissions to upload your ID card.');
+        return;
+      }
+      
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+      
+      if (!result.canceled) {
+        setIdCardImage(result.assets[0].uri);
+        // Clear any previous error
+        setErrors(prev => ({ ...prev, idCardImage: undefined }));
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image. Please try again.');
     }
   };
 
-  const handleGoogleSignUp = () => {
-    // In a real app, you would handle Google Sign-Up here
-    router.replace('/(tabs)');
+  const handleSignup = async () => {
+    if (!validateForm()) return;
+    
+    setIsLoading(true);
+    try {
+      // First upload the ID card image
+      let imageUri = '';
+      if (idCardImage) {
+        imageUri = await imageUploadService.uploadImage(idCardImage, `id_card_${rollNumber}`);
+      }
+      
+      // Register the user
+      await mongoAuthService.registerUser(email, password, name, rollNumber, imageUri);
+      
+      Alert.alert(
+        'Registration Successful', 
+        'Your account has been created and is pending approval by an administrator. You will be notified once your account is approved.',
+        [{ text: 'OK', onPress: () => router.push('/login') }]
+      );
+    } catch (error: any) {
+      Alert.alert('Registration Failed', error.message || 'Failed to register');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -150,31 +204,38 @@ const Signup = () => {
               icon={<MaterialIcons name="lock" size={20} color={COLORS.darkGray} />}
             />
             
-            <Button
-              title="Sign Up"
-              onPress={handleSignup}
-              style={styles.signupButton}
-            />
-            
-            <View style={styles.orContainer}>
-              <View style={styles.divider} />
-              <Text style={styles.orText}>OR</Text>
-              <View style={styles.divider} />
+            <View style={styles.idCardContainer}>
+              <Text style={styles.idCardLabel}>Upload ID Card Image *</Text>
+              <TouchableOpacity 
+                style={styles.idCardUpload} 
+                onPress={pickImage}
+              >
+                {idCardImage ? (
+                  <Image 
+                    source={{ uri: idCardImage }} 
+                    style={styles.idCardPreview} 
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.idCardPlaceholder}>
+                    <MaterialIcons name="add-photo-alternate" size={40} color={COLORS.gray} />
+                    <Text style={styles.idCardText}>Tap to upload ID Card</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              {errors.idCardImage && (
+                <Text style={styles.errorText}>{errors.idCardImage}</Text>
+              )}
             </View>
             
             <Button
-              title="Sign up with Google"
-              onPress={handleGoogleSignUp}
-              variant="outline"
-              style={styles.googleButton}
-              icon={
-                <Image
-                  source={require('../assets/images/google-icon.png')}
-                  style={styles.googleIcon}
-                  resizeMode="contain"
-                />
-              }
+              title={isLoading ? "Creating Account..." : "Sign Up"}
+              onPress={handleSignup}
+              style={styles.signupButton}
+              disabled={isLoading}
             />
+            
+
           </View>
           
           <View style={styles.footer}>
@@ -245,10 +306,46 @@ const styles = StyleSheet.create({
   googleButton: {
     marginBottom: SIZES.medium,
   },
-  googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: SIZES.small,
+  idCardContainer: {
+    marginTop: SIZES.medium,
+  },
+  idCardLabel: {
+    fontFamily: FONT.medium,
+    fontSize: SIZES.medium,
+    color: COLORS.darkGray,
+    marginBottom: SIZES.small,
+  },
+  idCardUpload: {
+    width: '100%',
+    height: 150,
+    borderRadius: SIZES.small,
+    borderWidth: 1,
+    borderColor: COLORS.gray,
+    borderStyle: 'dashed',
+    overflow: 'hidden',
+  },
+  idCardPlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.lightGray,
+  },
+  idCardText: {
+    fontFamily: FONT.medium,
+    fontSize: SIZES.medium,
+    color: COLORS.gray,
+    marginTop: SIZES.small,
+  },
+  idCardPreview: {
+    width: '100%',
+    height: '100%',
+  },
+  errorText: {
+    fontFamily: FONT.regular,
+    fontSize: SIZES.small,
+    color: COLORS.error,
+    marginTop: 5,
   },
   footer: {
     flexDirection: 'row',

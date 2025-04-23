@@ -18,6 +18,10 @@
       "package": "com.nnrg.connect",
       "versionCode": 1
     },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
     "extra": {
       "eas": {
         "projectId": "6eeaae6e-0c94-463b-b0d8-6b4284bfa168"

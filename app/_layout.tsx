@@ -8,7 +8,10 @@ import {
   Poppins_600SemiBold,
   Poppins_700Bold,
 } from '@expo-google-fonts/poppins';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
+import WebNotice from '../app/WebNotice';
+
+// Import AuthProvider based on platform
 import { AuthProvider } from '../contexts/AuthContext';
 
 SplashScreen.preventAutoHideAsync();
@@ -33,18 +36,20 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <View onLayout={onLayoutRootView} style={{ flex: 1 }}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="signup" options={{ headerShown: false }} />
-          <Stack.Screen name="profile" options={{ headerShown: false }} />
-          <Stack.Screen name="messages" options={{ headerShown: false }} />
-          <Stack.Screen name="batch-groups" options={{ headerShown: false }} />
-          <Stack.Screen name="announcement-details" options={{ headerShown: false }} />
-          <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
-        </Stack>
-      </View>
+      <WebNotice>
+        <View onLayout={onLayoutRootView} style={{ flex: 1 }}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="signup" options={{ headerShown: false }} />
+            <Stack.Screen name="profile" options={{ headerShown: false }} />
+            <Stack.Screen name="messages" options={{ headerShown: false }} />
+            <Stack.Screen name="batch-groups" options={{ headerShown: false }} />
+            <Stack.Screen name="announcement-details" options={{ headerShown: false }} />
+            <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
+          </Stack>
+        </View>
+      </WebNotice>
     </AuthProvider>
   );
 }
